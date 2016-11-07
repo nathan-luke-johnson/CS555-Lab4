@@ -73,10 +73,15 @@ int main(int argc, char * argv[]) {
   
 
   if(myRank == 0) {
-  for(i = 0; i < rows*cols; i++) {
-    printf("%d, ",picture[i]);
+    FILE *outFile = fopen("outFile", "w");
+    fwrite(&rows, sizeof(int), 1, outFile);
+    fwrite(&cols, sizeof(int), 1, outFile);
+    fwrite(&its, sizeof(int), 1, outFile);
+    fwrite(gatheredPicture, sizeof(int), rows*cols, outFile);
+    fclose(outFile);
+    free(gatheredPicture);
   }
-  }
+  free(picture);
   MPI_Finalize();
   return 0;
 }
