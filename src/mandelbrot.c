@@ -15,8 +15,8 @@ int main(int argc, char * argv[]) {
   int starty = -2;
   int endx  = 2;
   int endy = 2;
-  int cols = 1024;
-  int rows = 768;
+  int cols = 512;
+  int rows = 384;
 
   int i = 1;
   char *arg = NULL;
