@@ -11,10 +11,10 @@ int mandelbrot(double cx, double cy, int max_its);
 int main(int argc, char * argv[]) {
 
   int its = 200;
-  int startx = -2;
-  int starty = -2;
-  int endx  = 2;
-  int endy = 2;
+  double startx = -2;
+  double starty = -2;
+  double endx  = 2;
+  double endy = 2;
   int cols = 512;
   int rows = 384;
 
@@ -23,19 +23,23 @@ int main(int argc, char * argv[]) {
   //parse arguments
   while(i < argc) {
     arg = argv[i++];
-    if(strcmp(arg, "--startx")) {
-      startx=atoi(argv[i++]);
-    } else if(strcmp(arg, "--starty")) {
-      starty=atoi(argv[i++]);
-    } else if(strcmp(arg, "--endx")) {
-      endx = atoi(argv[i++]);
-    } else if(strcmp(arg, "--endy")) {
-      endy = atoi(argv[i++]);
-    } else if(strcmp(arg, "--its")) {
+    if(0 == strcmp(arg, "--startx")) {
+      startx=atof(argv[i++]);
+      //printf("startx = %f\n", startx);
+    } else if(0 == strcmp(arg, "--starty")) {
+      starty=atof(argv[i++]);
+      //printf("starty = %f\n",starty);
+    } else if(0 == strcmp(arg, "--endx")) {
+      endx = atof(argv[i++]);
+      //printf("endx = %f\n",endx);
+    } else if(0 == strcmp(arg, "--endy")) {
+      endy = atof(argv[i++]);
+      //printf("endy = %f\n",endy);
+    } else if(0 == strcmp(arg, "--its")) {
       its = atoi(argv[i++]);
-    } else if(strcmp(arg, "--rows")) {
+    } else if(0 == strcmp(arg, "--rows")) {
       rows = atoi(argv[i++]);
-    } else if(strcmp(arg, "--cols")) {
+    } else if(0 == strcmp(arg, "--cols")) {
       cols = atoi(argv[i++]);
     } else {
       printf("Error: Unknown parameter: %s\n", arg);
@@ -48,29 +52,38 @@ int main(int argc, char * argv[]) {
   int P;
   MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
   MPI_Comm_size(MPI_COMM_WORLD, &P);
-  int *gatheredPicture;
+  int *gatheredPicture = NULL;
+  double startTime;
+  double endTime;
   if(myRank == 0)
   {
     gatheredPicture = malloc(sizeof(int)*rows*cols);
   }
+  MPI_Barrier(MPI_COMM_WORLD);
+  startTime = MPI_Wtime();
+
   int *picture = malloc(sizeof(int)*rows*cols);
   int row; int col;
   double cx; double cy;
   int color;
 
   for (row = (rows/P)*myRank; row < (rows/P)*(myRank+1); row++) {
+      cy = starty + (endy-starty)*(double)row/(double)rows;
     for(col = 0; col < cols; col++) {
-      cy = starty + (endy-starty)*row/rows;
-      cx = startx + (endx-startx)*col/cols;
+      cx = startx + (endx-startx)*(double)col/(double)cols;
       color = mandelbrot(cx,cy,its);
+      if (color == its) { color = 0; }
       picture[cols*row + col] = color;
     }
   }
+
   
   MPI_Gather(&picture[cols*(rows/P)*myRank], cols*(rows/P), MPI_INT,
       gatheredPicture, cols*(rows/P), MPI_INT,
       0, MPI_COMM_WORLD);
+  endTime = MPI_Wtime();
   
+  printf("Processor %d took %f seconds\n", myRank, (endTime - startTime));
 
   if(myRank == 0) {
     FILE *outFile = fopen("outFile", "w");
