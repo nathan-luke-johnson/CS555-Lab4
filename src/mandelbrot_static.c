@@ -61,7 +61,7 @@ int main(int argc, char * argv[]) {
   }
   MPI_Barrier(MPI_COMM_WORLD);
   startTime = MPI_Wtime();
-
+  
   int *picture = malloc(sizeof(int)*rows*cols);
   int row; int col;
   double cx; double cy;
@@ -82,8 +82,13 @@ int main(int argc, char * argv[]) {
       gatheredPicture, cols*(rows/P), MPI_INT,
       0, MPI_COMM_WORLD);
   endTime = MPI_Wtime();
-  
-  printf("Processor %d took %f seconds\n", myRank, (endTime - startTime));
+  MPI_Barrier(MPI_COMM_WORLD);
+  for(i = 0; i < P; i++) {
+    if(myRank == i) {
+      printf("Processor %d took %f seconds\n", myRank, (endTime - startTime));
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+  }
 
   if(myRank == 0) {
     FILE *outFile = fopen("outFile", "w");

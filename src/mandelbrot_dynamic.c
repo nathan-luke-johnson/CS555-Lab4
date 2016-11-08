@@ -142,10 +142,15 @@ int main(int argc, char * argv[]) {
 
   endTime = MPI_Wtime();
   MPI_Barrier(MPI_COMM_WORLD);
-  //printf("Processor %d took %f seconds\n", myRank, (endTime - startTime));
+  for(i = 0; i < P; i++) {
+    if(myRank == i) {
+      printf("Processor %d took %f seconds\n", myRank, (endTime - startTime));
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+  }
 
   if(myRank == 0) {
-    printf("Processor %d took %f seconds\n", myRank, (endTime - startTime));
+    //printf("Processor %d took %f seconds\n", myRank, (endTime - startTime));
     FILE *outFile = fopen("outFile", "w");
     fwrite(&rows, sizeof(int), 1, outFile);
     fwrite(&cols, sizeof(int), 1, outFile);
