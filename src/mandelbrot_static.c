@@ -10,7 +10,7 @@ int mandelbrot(double cx, double cy, int max_its);
 
 int main(int argc, char * argv[]) {
 
-  int its = 200;
+  int its = 255;
   double startx = -2;
   double starty = -2;
   double endx  = 2;
